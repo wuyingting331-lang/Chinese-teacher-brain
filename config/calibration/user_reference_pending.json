@@ -1,0 +1,29 @@
+{
+  "id": "user-reference-sibling-v1",
+  "set_id": "user-reference-v1",
+  "label": "照顾妹妹故事：用户报告的参考评分",
+  "source": "2026-11-05用户本轮任务说明；参考批改样本A及当前报告B尚未收到",
+  "reference_score": 26,
+  "reference_subscores": [{"name": "内容", "score": 13}, {"name": "表达", "score": 13}],
+  "maximum": 40,
+  "reference_title": null,
+  "reference_body": null,
+  "reference_paragraphs": {},
+  "reference_feedback": null,
+  "current_report_score_reported": 31,
+  "content_rationale": [
+    "主题明确，事件基本完整，已有换尿布、关电脑、陪伴的补救行动。",
+    "事件完整不代表发展充分，警察提醒、担忧、发现大腿红疹与自责之间展开较快。",
+    "自责词语不足以证明心理刻画细腻，结尾的反思意图不等于反思充分。"
+  ],
+  "expression_rationale": [
+    "三步并作两步、结结巴巴、小心翼翼是用户指出的局部表达亮点，尚未逐字核对。",
+    "综合评估句子拼接、残句、指代错误、对话标点与用词对阅读的影响，不以局部亮点概括为整体流畅。",
+    "不机械逐字扣分，不在内容和表达中重复处罚同一个错字。"
+  ],
+  "limitations": [
+    "尚未获得题目、确认全文、段落与错字版本，无法宣称与参考评分完全同稿。",
+    "26及13+13来自用户报告，判断理由来自本轮用户说明，不是对尚未收到的样本原文的引用。",
+    "当前仅登记一个待核对样例，没有其他带参考分数的不同水平作文。"
+  ]
+}
