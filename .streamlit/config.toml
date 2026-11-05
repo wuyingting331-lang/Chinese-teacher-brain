@@ -1,3 +1,8 @@
+[server]
+enableStaticServing = false
+enableXsrfProtection = true
+enableCORS = true
+
 [theme]
 base = "light"
 primaryColor = "#b53636"

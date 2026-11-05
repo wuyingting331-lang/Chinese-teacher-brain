@@ -188,7 +188,7 @@ def test_streamlit_single_original_and_example_blocks_and_checklist(monkeypatch,
     monkeypatch.setattr('teacher.demo.demo_record',lambda:r)
     app=Path(__file__).resolve().parents[1]/'app.py'
     at=AppTest.from_file(str(app)).run()
-    at.sidebar.button[0].click().run()
+    next(b for b in at.sidebar.button if b.label=='打开离线演示').click().run()
     assert not at.exception
     markdowns=[e.value for e in at.markdown]
     texts=[e.value for e in at.text]
@@ -205,7 +205,7 @@ def test_streamlit_single_original_and_example_blocks_and_checklist(monkeypatch,
     assert not at.exception and at.session_state.record.completed_tasks==[1]
     assert '- [x] 任务1' in markdown_report(at.session_state.record)
     assert at.session_state.record.report.overview.score==r.report.overview.score
-    at.sidebar.button[0].click().run()
+    next(b for b in at.sidebar.button if b.label=='打开离线演示').click().run()
     assert not at.exception and at.session_state.record.completed_tasks==[]
 
 

@@ -456,13 +456,14 @@ def show_paragraphs(st,record,values):
 
 
 def show_second_draft(st,record):
+    from teacher.private_media import private_download
     state=record.draft_state
     if not record.second_draft and state:
         st.subheader('示范二稿')
         if state.get('body_status')=='valid':
             st.warning('二稿正文已通过结构与版本校验；修改落实说明未完成，请点击“只重试落实说明”。人物、事件与结局仍需人工核对。')
             st.text(state['body']['body'])
-            st.download_button('下载二稿正文（说明未完成）',state['body']['body'],file_name=f'{record.id}-body.txt')
+            private_download(st,'下载二稿正文（说明未完成）',state['body']['body'],file_name=f'{record.id}-body.txt')
         else:
             st.warning('二稿正文尚未通过校验，请点击“重新生成示范二稿”。')
             if state.get('unverified_body'):
@@ -482,7 +483,7 @@ def show_second_draft(st,record):
         values,_=report_data(record)
         for block in draft_display_blocks(record,values.get('paragraphs',[])):
             st.text(block)
-        st.download_button('下载完整示范二稿',markdown_draft(record),file_name=f'{record.id}-draft.md',mime='text/markdown',
+        private_download(st,'下载完整示范二稿',markdown_draft(record),file_name=f'{record.id}-draft.md',mime='text/markdown',
                            disabled=st.session_state.get('busy',False))
         st.markdown('**修改落实说明**')
         for item in d.implementation:

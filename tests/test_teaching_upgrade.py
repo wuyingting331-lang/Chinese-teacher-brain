@@ -77,7 +77,7 @@ def test_new_fields_validation_and_screen_export_parity(monkeypatch,tmp_path):
     assert r.essay.paragraphs['P004'] in screen
     assert '沿用P004提升示范第1段' in screen and '落实寻找与担忧的衔接' in screen
     assert '沿用P004提升示范第1段' in text
-    assert any(b.label=='下载完整示范二稿' for b in at.get('download_button'))
+    assert at.get('bidi_component')  # Downloads are browser-only; no public /media URL.
     assert '脚步和内心话为新拟具体化细节' in text
     at.number_input(key='goal_score').set_value(35).run()
     assert next(b for b in at.button if b.label=='确认原文').disabled is False

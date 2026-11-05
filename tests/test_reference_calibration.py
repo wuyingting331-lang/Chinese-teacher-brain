@@ -185,12 +185,13 @@ def test_real_button_markdown_payload_is_written_and_parsed(monkeypatch,tmp_path
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr('teacher.client.settings',lambda secrets:('',''))
     captured={}
-    original=st.download_button
-    def download(label,data,*args,**kwargs):
+    import teacher.private_media as media
+    original=media.private_download
+    def download(st,label,data,*args,**kwargs):
         if kwargs.get('mime')=='text/markdown':
             captured['payload']=data
-        return original(label,data,*args,**kwargs)
-    monkeypatch.setattr(st,'download_button',download)
+        return original(st,label,data,*args,**kwargs)
+    monkeypatch.setattr(media,'private_download',download)
     app=Path(__file__).resolve().parents[1]/'app.py'
     at=AppTest.from_file(str(app)).run()
     next(b for b in at.button if b.label=='打开离线演示').click().run()

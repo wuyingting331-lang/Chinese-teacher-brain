@@ -54,7 +54,7 @@ def ui(monkeypatch,tmp_path,r):
     monkeypatch.setattr('teacher.client.settings',lambda secrets:('',''))
     monkeypatch.setattr('teacher.demo.demo_record',lambda:r)
     at=AppTest.from_file(str(Path(__file__).resolve().parents[1]/'app.py')).run()
-    at.sidebar.button[0].click().run()
+    next(b for b in at.sidebar.button if b.label=='打开离线演示').click().run()
     assert not at.exception
     return at
 

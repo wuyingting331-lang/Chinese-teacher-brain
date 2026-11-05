@@ -1,6 +1,11 @@
 """Streamlit entry point: python -m streamlit run app.py."""
 import logging
 import streamlit as st
+from teacher.family_auth import require_login
+
+st.set_page_config(page_title='华文作文小老师', page_icon='✍️', layout='wide')
+require_login(st)
+
 from teacher.runtime_paths import bind_session
 
 bind_session(st.session_state)
@@ -18,13 +23,13 @@ from teacher.models import CalibrationAudit
 from teacher.report_contract import SCHEMA_VERSION
 from teacher.image_ui import picture_editor, restore_picture_editor
 from teacher.images import valid_confirmation
+from teacher.private_media import private_download
 
 # Upgrade an existing browser session after a code reload without touching editor text.
 if st.session_state.get('record') is not None:
     previous_record=st.session_state.record
     st.session_state.record=Record.model_validate(previous_record.model_dump())
 
-st.set_page_config(page_title='华文作文小老师', page_icon='✍️', layout='wide')
 st.markdown('''<style>
 .original {color:#171717;background:#fff;padding:1.2rem;border-left:3px solid #d5c6aa;
 white-space:pre-wrap;line-height:1.95;font-size:1.1rem;border-radius:4px;}
@@ -79,6 +84,9 @@ except (OSError, ValueError):
 
 
 def queue_operation(kind):
+    from teacher.family_auth import authenticated,configured_password
+    if not authenticated(st.session_state,configured_password(st)):
+        return
     if st.session_state.get('busy'):
         return
     r = st.session_state.get('record')
@@ -330,8 +338,8 @@ if st.button('保存已确认记录', disabled=busy):
     except Exception as error:
         fail(error)
 from teacher.render import markdown_report
-st.download_button('下载 Markdown 批改报告', markdown_report(record), file_name=f'{record.id}.md',mime='text/markdown', disabled=busy)
-st.download_button('下载 JSON 记录备份',record.model_dump_json(indent=2),file_name=f'{record.id}.json',mime='application/json', disabled=busy)
+private_download(st,'下载 Markdown 批改报告', markdown_report(record), file_name=f'{record.id}.md',mime='text/markdown', disabled=busy)
+private_download(st,'下载 JSON 记录备份',record.model_dump_json(indent=2),file_name=f'{record.id}.json',mime='application/json', disabled=busy)
 st.caption('JSON 不包含原始图片；图片只在当前会话临时保留，请自行保存上传的原图。')
 pending = st.session_state.pop('pending',None)
 if pending:

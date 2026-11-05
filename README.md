@@ -28,34 +28,48 @@ py -3.12 -m venv .venv
 部署入口为仓库根目录 `app.py`，分支建议 `main`；Advanced settings 选择 **Python 3.12**。平台安装根目录 `requirements.txt`，已固定经过本项目测试的5个运行时直接依赖。`requirements-dev.txt` 用于离线测试，`requirements-lock.txt` 是本地完整环境快照，不作为云端安装入口。不需要 `packages.txt` 或 Windows 系统依赖。
 
 1. 将本项目推送到**独立的中文作文应用 GitHub 仓库**。提交 `app.py`、`teacher/`、`config/`、依赖文件、`.python-version`、`.streamlit/config.toml`、secrets示例及README；可一并提交合成测试和脚本。不要上传 `.env`、真实secrets、虚拟环境、`data/`、`uploads/`、`reports/`。
-2. 在 Community Cloud 选择该仓库、`main` 和 `app.py`。在 Advanced settings → Secrets 填写以下顶层TOML键（替换占位密钥，不要加 `[openai]` 分组）：
+2. 在 Community Cloud 选择该仓库、`main` 和 `app.py`。华文使用独立网址，英文继续保留原有私有应用，不需要修改英文应用或仓库可见性。在 Advanced settings → Secrets 填写以下顶层TOML键（替换占位内容，不要加 `[openai]` 或 `[auth]` 分组）：
 
 ```toml
+FAMILY_PASSWORD = "替换为家人共用的长随机密码"
 OPENAI_API_KEY = "填入真实密钥"
 OPENAI_MODEL = "gpt-4.1"
 # 可选；省略时图片识别复用 OPENAI_MODEL。
 # OPENAI_VISION_MODEL = "账户可用且支持图像和结构化输出的模型"
 ```
 
-3. 发布后先打开离线演示检查页面；再用匿名短文验证真实批改。模型需在账户中可用并支持 Responses 结构化输出；不要提交或截图展示真实密钥。
+3. 发布后先用家庭密码登录，再打开离线演示检查页面；最后用匿名短文验证真实批改。模型需在账户中可用并支持 Responses 结构化输出；不要提交或截图展示真实密码及密钥。
 
 官方说明：[部署入口与Python版本](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy)、[云端Secrets配置](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/secrets-management)。`.python-version` 记录本地版本意图，不能代替部署界面选择Python版本。
 
-部署准备验收：128项离线测试通过（含两个AppTest会话互不展示历史记录、同图隔离、secrets读取）；本地依赖一致性检查通过；Python 3.12 / Linux x86_64的二进制依赖解析通过；只用Git暂存文件复制的干净目录可启动并打开演示。尚未在真实Community Cloud创建应用，因此这些检查不替代部署后的验收。当前本地Git分支 `main`，准备首次提交，未配置remote、未推送。
+部署准备验收：加入家庭登录后，138项离线测试通过（含登录阻断、尝试限制、退出清理、两个AppTest会话隔离、同图隔离、secrets读取）；离线Edge组件检查通过，确认图片解码与下载Blob的Unicode内容正确。此前本地依赖一致性及Python 3.12 / Linux x86_64依赖解析通过。尚未在真实Community Cloud创建应用，这些检查不替代部署后的验收。英文应用及仓库可见性保持不变；代码提交与推送只针对华文仓库。
 
 **会话数据不是永久存储。** 应用每个浏览器会话使用独立、随机命名的系统临时目录，保存该会话的记录、图片、诊断和历史适配备份。不会扫描仓库的 `data/records` 或其他会话目录，不使用全局缓存保存学生资料。当前会话内可以保存、重新打开；新会话、断线重连或云端重启后不保证恢复。请及时下载JSON、Markdown并自行保留原图。JSON不包含图片；应用目前没有跨会话账户存储或上传JSON恢复入口。
 
 本地网页也采用同样隔离方式；原有本地 `data/` 不删除、不自动导入网页。命令行工具无网页会话上下文时，仍可显式访问项目 `data/`，不要将该目录提交Git。临时目录不代表离开页面立即安全删除，实例回收前可能仍存在；没有将它作为永久云端档案。
 
+## 家庭访问控制
+
+公开的华文应用网址先显示家庭密码页。必须在 Streamlit Secrets 中设置顶层 `FAMILY_PASSWORD` 为非空字符串；缺失、空白或类型错误时阻止进入，离线演示也不能绕过。本地同样需要 `.streamlit/secrets.toml`；家庭密码不从 `.env` 或查询参数读取。示例文件故意留空，推荐自行生成至少16字符的独立随机密码，不复用API密钥。
+
+密码使用 `hmac.compare_digest` 比较UTF-8字节；明文不保存在登录状态、记录或日志中。登录状态是服务端会话内的随机密钥HMAC标记，不放进网址或共享缓存；修改Secrets或服务重启后需重新登录。登录前不绑定业务目录、不加载评分配置或历史记录、不展示图片、下载或模型功能。
+
+连续5次输错后，该会话暂停60秒；当前服务实例5分钟内累计20次失败时，所有未登录会话暂时限制尝试，直到失败计数滑出窗口。更换会话不会清除实例计数；实例重启会重置，多个实例之间不共享。这是家庭共用密码访问控制，不是独立账号、身份识别或完整的分布式防暴力系统。
+
+侧栏“退出家庭登录”清空作文、图片关联、报告、待执行任务与登录状态，删除该会话创建的临时目录，清理该会话上传文件及旧媒体引用。其他会话不受影响。已经由家人下载或保存到浏览器外的文件无法收回；退出前需下载的资料请先备份。没有“记住登录”的长期cookie。
+
+学生图片预览与下载使用随已登录页面传输的数据，在浏览器生成图片和Blob下载；不使用 `st.image` / `st.download_button` 为学生资料创建独立的公开 `/media` 地址。静态文件服务明确关闭。不存在将作文或报告放进跨会话缓存的逻辑。公开仓库只能包含代码、配置和合成测试；家庭密码不隐藏公开仓库代码，也不要把学生资料提交到Git。
+
 ## 配置
 
 将 `.env.example` 复制为 `.env`，或将 `.streamlit/secrets.toml.example` 复制为 `.streamlit/secrets.toml`，填写：
 
+- `FAMILY_PASSWORD`：必填家庭密码，只从 Streamlit Secrets 读取；空缺时锁定应用。
 - `OPENAI_API_KEY`：有效密钥。
 - `OPENAI_MODEL`：账户可用、支持 Responses 结构化输出的评分模型。
 - `OPENAI_VISION_MODEL`：可选，支持图像输入及结构化输出的模型；未填写则复用评分模型。不要保留模型名称占位符。
 
-优先采用进程环境变量，其次 `.env`、Streamlit secrets。更改后重启。真实评分发送作文及确认题目信息，图片识别发送当前题目图片给模型服务，通常产生费用；姓名可不填写。SDK 使用 `store=False`，这不等于对服务商数据处理政策作额外承诺。
+API配置优先采用进程环境变量，其次 `.env`、Streamlit secrets。家庭密码例外，只读取Streamlit Secrets。更改后重启。真实评分发送作文及确认题目信息，图片识别发送当前题目图片给模型服务，通常产生费用；姓名可不填写。SDK 使用 `store=False`，这不等于对服务商数据处理政策作额外承诺。
 
 报告请求使用Responses.create及strict JSON Schema，先取得JSON，再逐栏目、逐段运行Pydantic和业务校验；不再因一段自定义校验失败而丢弃整包候选。图像仍通过按顺序排列的多个input_image Base64数据URL传入模型。当前SDK路径和联调证据见 [FLOW_RECOVERY_NOTES.md](FLOW_RECOVERY_NOTES.md)。
 
@@ -180,6 +194,6 @@ data/images/                   # 原始图片，Git 忽略
 
 学生资料、图片、报告与真实密钥应放在 Git 忽略目录 `data/`、`uploads/`、`reports/` 或被忽略的配置文件，不要移入其他受版本管理目录。额外 `.env` 副本也已忽略，模板仅放占位符。
 
-Streamlit Community Cloud 选 Python 3.12、入口 `app.py`，从 `requirements.txt` 安装依赖并配置 Secrets；`requirements-lock.txt` 是实测依赖快照。**云端本地文件不保证永久保存**，需下载记录并备份图片；后续再接持久化服务。本次未创建远程仓库、推送或部署。
+Streamlit Community Cloud 选 Python 3.12、入口 `app.py`，从 `requirements.txt` 安装依赖并配置 Secrets；`requirements-lock.txt` 是实测依赖快照。**云端本地文件不保证永久保存**，需下载记录并备份图片；后续再接持久化服务。推送代码与在Community Cloud新建应用是两个步骤，仍需在部署界面选择仓库、入口与填写Secrets。
 
-网页已按会话隔离档案与图片，但没有用户身份认证、跨设备账户档案或永久存储；会话隔离不等于登录权限系统。正式评分表、校准样本与完整词句库仍未提供；范文分析、独立稿件比较、学习趋势、词句库检索及 PDF／Word 导出留作后续扩展。教学判断、图像事实与示范二稿的情节忠实性仍需人工审核。
+网页采用家庭密码访问控制并按会话隔离档案与图片，但没有独立用户身份、跨设备账户档案或永久存储。正式评分表、校准样本与完整词句库仍未提供；范文分析、独立稿件比较、学习趋势、词句库检索及 PDF／Word 导出留作后续扩展。教学判断、图像事实与示范二稿的情节忠实性仍需人工审核。

@@ -1,6 +1,7 @@
 import os
 from teacher.client import ModelClient, friendly_error
 from teacher.images import ingest, MAX_FILES, model_bytes, identify, image_version, confirmed
+from teacher.private_media import private_image
 
 
 def picture_editor(st, key, model, busy):
@@ -28,7 +29,7 @@ def picture_editor(st, key, model, busy):
     for i,p in enumerate(pictures):
         st.markdown(f'**图片 {i+1}**')
         try:
-            st.image(model_bytes(p),width='stretch',alt=f'第{i+1}张题目图片')
+            private_image(st,model_bytes(p),alt=f'第{i+1}张题目图片',key=f'private-picture-{i}-{p.digest}')
         except (OSError,ValueError):
             st.warning(f'图片{i+1}缺失或损坏；现有报告仍可阅读，可重新上传图片。')
         a,b,c=st.columns(3)
